@@ -74,6 +74,12 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
+      - name: Add custom packages
+        run: |
+          mkdir -p package/custom
+          git clone --depth 1 --branch master https://github.com/mchome/openwrt-vlmcsd.git package/custom/vlmcsd
+          git clone --depth 1 --branch master https://github.com/mchome/luci-app-vlmcsd.git package/custom/luci-app-vlmcsd
+
       - name: Configure NanoPi R4S build
         run: |
           cp configs/nanopi-r4s.config .config
@@ -83,7 +89,7 @@ jobs:
             local symbol="$1"
             if ! grep -q "^${symbol}=y$" .config; then
               echo "Missing expected config: ${symbol}" >&2
-              grep -E 'CONFIG_(TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s|PACKAGE_luci|PACKAGE_luci-ssl|LUCI_LANG_zh_Hans|PACKAGE_luci-app-passwall2|PACKAGE_luci-i18n-passwall2|PACKAGE_xray-core|PACKAGE_geoview|PACKAGE_v2ray|PACKAGE_sing-box|PACKAGE_shadowsocks|PACKAGE_haproxy)' .config || true
+              grep -E 'CONFIG_(TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s|PACKAGE_luci|PACKAGE_luci-ssl|LUCI_LANG_zh_Hans|PACKAGE_luci-app-passwall2|PACKAGE_luci-i18n-passwall2|PACKAGE_vlmcsd|PACKAGE_luci-app-vlmcsd|PACKAGE_xray-core|PACKAGE_geoview|PACKAGE_v2ray|PACKAGE_sing-box|PACKAGE_shadowsocks|PACKAGE_haproxy)' .config || true
               exit 1
             fi
           }
@@ -95,6 +101,8 @@ jobs:
           require_config CONFIG_LUCI_LANG_zh_Hans
           require_config CONFIG_PACKAGE_luci-app-passwall2
           require_config CONFIG_PACKAGE_luci-i18n-passwall2-zh-cn
+          require_config CONFIG_PACKAGE_vlmcsd
+          require_config CONFIG_PACKAGE_luci-app-vlmcsd
 
       - name: Download sources
         run: make download -j"$(nproc)"
