@@ -78,12 +78,23 @@ jobs:
         run: |
           cp configs/nanopi-r4s.config .config
           make defconfig
-          grep -q '^CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s=y$' .config
-          grep -q '^CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s-enterprise=y$' .config
-          grep -q '^CONFIG_PACKAGE_luci=y$' .config
-          grep -q '^CONFIG_PACKAGE_luci-ssl=y$' .config
-          grep -q '^CONFIG_PACKAGE_luci-app-passwall2=y$' .config
-          grep -q '^CONFIG_PACKAGE_luci-i18n-passwall2-zh-cn=y$' .config
+
+          require_config() {
+            local symbol="$1"
+            if ! grep -q "^${symbol}=y$" .config; then
+              echo "Missing expected config: ${symbol}" >&2
+              grep -E 'CONFIG_(TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s|PACKAGE_luci|PACKAGE_luci-ssl|LUCI_LANG_zh_Hans|PACKAGE_luci-app-passwall2|PACKAGE_luci-i18n-passwall2|PACKAGE_xray-core|PACKAGE_geoview|PACKAGE_v2ray|PACKAGE_sing-box|PACKAGE_shadowsocks|PACKAGE_haproxy)' .config || true
+              exit 1
+            fi
+          }
+
+          require_config CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s
+          require_config CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s-enterprise
+          require_config CONFIG_PACKAGE_luci
+          require_config CONFIG_PACKAGE_luci-ssl
+          require_config CONFIG_LUCI_LANG_zh_Hans
+          require_config CONFIG_PACKAGE_luci-app-passwall2
+          require_config CONFIG_PACKAGE_luci-i18n-passwall2-zh-cn
 
       - name: Download sources
         run: make download -j"$(nproc)"
