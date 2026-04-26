@@ -71,8 +71,29 @@ jobs:
 
       - name: Update and install feeds
         run: |
-          ./scripts/feeds update -a
-          ./scripts/feeds install -a
+          set -euo pipefail
+
+          run_with_retry() {
+            local description="$1"
+            shift
+
+            for attempt in 1 2 3; do
+              if "$@"; then
+                return 0
+              fi
+
+              if [ "${attempt}" -eq 3 ]; then
+                echo "${description} failed after ${attempt} attempts" >&2
+                return 1
+              fi
+
+              echo "${description} failed; retrying in $((attempt * 20)) seconds" >&2
+              sleep $((attempt * 20))
+            done
+          }
+
+          run_with_retry "feeds update" ./scripts/feeds update -a
+          run_with_retry "feeds install" ./scripts/feeds install -a
 
       - name: Add custom packages
         run: |
