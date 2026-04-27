@@ -93,6 +93,14 @@ jobs:
           }
 
           run_with_retry "feeds update" ./scripts/feeds update -a
+
+          geoview_makefile="feeds/passwall_packages/geoview/Makefile"
+          perl -0pi -e \
+            's/^PKG_VERSION:=.*/PKG_VERSION:=0.1.10/m; s/^PKG_HASH:=.*/PKG_HASH:=9221df928df68030893125a60bdf6d8a1fef2b199fa58ed80772cb3c17225fc5/m' \
+            "${geoview_makefile}"
+          grep -q '^PKG_VERSION:=0.1.10$' "${geoview_makefile}"
+          grep -q '^PKG_HASH:=9221df928df68030893125a60bdf6d8a1fef2b199fa58ed80772cb3c17225fc5$' "${geoview_makefile}"
+
           run_with_retry "feeds install" ./scripts/feeds install -a
 
       - name: Add custom packages
@@ -127,6 +135,12 @@ jobs:
 
       - name: Download sources
         run: make download -j"$(nproc)"
+
+      - name: Build third-party package smoke checks
+        run: |
+          make package/feeds/passwall_packages/geoview/compile -j"$(nproc)" V=s
+          make package/custom/vlmcsd/compile -j"$(nproc)" V=s
+          make package/custom/luci-app-vlmcsd/compile -j"$(nproc)" V=s
 
       - name: Build firmware
         run: make -j"$(nproc)" V=s
