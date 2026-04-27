@@ -101,6 +101,13 @@ jobs:
           grep -q '^PKG_VERSION:=0.1.10$' "${geoview_makefile}"
           grep -q '^PKG_HASH:=9221df928df68030893125a60bdf6d8a1fef2b199fa58ed80772cb3c17225fc5$' "${geoview_makefile}"
 
+          xray_makefile="feeds/passwall_packages/xray-core/Makefile"
+          perl -0pi -e \
+            's/^PKG_VERSION:=.*/PKG_VERSION:=25.2.21/m; s/^PKG_HASH:=.*/PKG_HASH:=a565db518d2da12fabb74e123d9bf2bdbc34420b81373938f8fcbc7004fda3ba/m' \
+            "${xray_makefile}"
+          grep -q '^PKG_VERSION:=25.2.21$' "${xray_makefile}"
+          grep -q '^PKG_HASH:=a565db518d2da12fabb74e123d9bf2bdbc34420b81373938f8fcbc7004fda3ba$' "${xray_makefile}"
+
           run_with_retry "feeds install" ./scripts/feeds install -a
 
       - name: Add custom packages
@@ -123,6 +130,15 @@ jobs:
             fi
           }
 
+          forbid_config() {
+            local symbol="$1"
+            if grep -q "^${symbol}=y$" .config; then
+              echo "Unexpected config enabled: ${symbol}" >&2
+              grep -E 'CONFIG_(TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s|PACKAGE_luci|PACKAGE_luci-ssl|LUCI_LANG_zh_Hans|PACKAGE_luci-app-passwall2|PACKAGE_luci-i18n-passwall2|PACKAGE_vlmcsd|PACKAGE_luci-app-vlmcsd|PACKAGE_xray-core|PACKAGE_geoview|PACKAGE_sing-box|PACKAGE_v2ray-plugin|PACKAGE_hysteria|PACKAGE_tuic-client|PACKAGE_shadowsocks-rust)' .config || true
+              exit 1
+            fi
+          }
+
           require_config CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s
           require_config CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s-enterprise
           require_config CONFIG_PACKAGE_luci
@@ -132,6 +148,15 @@ jobs:
           require_config CONFIG_PACKAGE_luci-i18n-passwall2-zh-cn
           require_config CONFIG_PACKAGE_vlmcsd
           require_config CONFIG_PACKAGE_luci-app-vlmcsd
+          require_config CONFIG_PACKAGE_xray-core
+          require_config CONFIG_PACKAGE_geoview
+          forbid_config CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Hysteria
+          forbid_config CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_NaiveProxy
+          forbid_config CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Rust_Client
+          forbid_config CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Rust_Server
+          forbid_config CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_SingBox
+          forbid_config CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_tuic_client
+          forbid_config CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_V2ray_Plugin
 
       - name: Download sources
         run: make download -j"$(nproc)"
@@ -140,6 +165,7 @@ jobs:
         run: |
           make tools/install -j"$(nproc)" V=s
           make toolchain/install -j"$(nproc)" V=s
+          make package/feeds/passwall_packages/xray-core/compile -j"$(nproc)" V=s
           make package/feeds/passwall_packages/geoview/compile -j"$(nproc)" V=s
           make package/custom/vlmcsd/compile -j"$(nproc)" V=s
           make package/custom/luci-app-vlmcsd/compile -j"$(nproc)" V=s
