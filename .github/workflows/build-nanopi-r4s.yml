@@ -138,6 +138,8 @@ jobs:
 
       - name: Build third-party package smoke checks
         run: |
+          make tools/install -j"$(nproc)" V=s
+          make toolchain/install -j"$(nproc)" V=s
           make package/feeds/passwall_packages/geoview/compile -j"$(nproc)" V=s
           make package/custom/vlmcsd/compile -j"$(nproc)" V=s
           make package/custom/luci-app-vlmcsd/compile -j"$(nproc)" V=s
