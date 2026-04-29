@@ -1,0 +1,27 @@
+if [ ! -e /etc/rootpt-resize ] \
+&& type parted >/dev/null \
+&& lock -n /var/lock/root-resize
+then
+	ROOT_BLK="$(readlink -f /sys/dev/block/"$(awk '$9=="/dev/root"{print $3}' /proc/self/mountinfo)")"
+	ROOT_DEV="/dev/${ROOT_BLK##*/}"
+	ROOT_DISK="/dev/$(basename "${ROOT_BLK%/*}")"
+	ROOT_PART="${ROOT_BLK##*[^0-9]}"
+
+	if [ -b "${ROOT_DISK}" ] \
+	&& [ -b "${ROOT_DEV}" ] \
+	&& [ -n "${ROOT_PART}" ] \
+	&& parted -f -s "${ROOT_DISK}" resizepart "${ROOT_PART}" 100%
+	then
+		mount_root done
+		touch /etc/rootpt-resize
+
+		if [ -e /boot/cmdline.txt ]; then
+			NEW_UUID="$(blkid "${ROOT_DEV}" | sed -n 's/.*PARTUUID="\([^"]*\)".*/\1/p')"
+			[ -n "${NEW_UUID}" ] && sed -i "s/PARTUUID=[^ ]*/PARTUUID=${NEW_UUID}/" /boot/cmdline.txt
+		fi
+
+		reboot
+	fi
+fi
+
+exit 1

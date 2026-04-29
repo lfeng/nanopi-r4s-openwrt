@@ -13,7 +13,14 @@
 /logs
 /feeds
 /feeds.conf
-/files
+/files/*
+!/files/etc/
+/files/etc/*
+!/files/etc/sysupgrade.conf
+!/files/etc/uci-defaults/
+/files/etc/uci-defaults/*
+!/files/etc/uci-defaults/70-rootpt-resize
+!/files/etc/uci-defaults/80-rootfs-resize
 /target/linux/feeds
 /overlay
 /package/feeds

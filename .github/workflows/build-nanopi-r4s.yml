@@ -125,7 +125,7 @@ jobs:
             local symbol="$1"
             if ! grep -q "^${symbol}=y$" .config; then
               echo "Missing expected config: ${symbol}" >&2
-              grep -E 'CONFIG_(TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s|PACKAGE_luci|PACKAGE_luci-ssl|LUCI_LANG_zh_Hans|PACKAGE_dnsmasq|PACKAGE_dnsmasq-full|PACKAGE_luci-app-passwall2|PACKAGE_luci-i18n-passwall2|PACKAGE_vlmcsd|PACKAGE_luci-app-vlmcsd|PACKAGE_xray-core|PACKAGE_geoview|PACKAGE_v2ray|PACKAGE_sing-box|PACKAGE_shadowsocks|PACKAGE_haproxy)' .config || true
+              grep -E 'CONFIG_(TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s|PACKAGE_luci|PACKAGE_luci-ssl|LUCI_LANG_zh_Hans|PACKAGE_dnsmasq|PACKAGE_dnsmasq-full|PACKAGE_luci-app-passwall2|PACKAGE_luci-i18n-passwall2|PACKAGE_vlmcsd|PACKAGE_luci-app-vlmcsd|PACKAGE_xray-core|PACKAGE_geoview|PACKAGE_v2ray|PACKAGE_sing-box|PACKAGE_shadowsocks|PACKAGE_haproxy|PACKAGE_blkid|PACKAGE_losetup|PACKAGE_parted|PACKAGE_resize2fs)' .config || true
               exit 1
             fi
           }
@@ -151,6 +151,10 @@ jobs:
           require_config CONFIG_PACKAGE_luci-app-vlmcsd
           require_config CONFIG_PACKAGE_xray-core
           require_config CONFIG_PACKAGE_geoview
+          require_config CONFIG_PACKAGE_blkid
+          require_config CONFIG_PACKAGE_losetup
+          require_config CONFIG_PACKAGE_parted
+          require_config CONFIG_PACKAGE_resize2fs
           forbid_config CONFIG_PACKAGE_dnsmasq
           forbid_config CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Hysteria
           forbid_config CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_NaiveProxy
